@@ -66,5 +66,5 @@ for line in log:
                 num_words += entry_num_words
 
 print("Strokes per word = "
-    + str(float(num_strokes)/num_words)
+    + (str(float(num_strokes)/num_words) if num_words > 0 else "n/a")
     + " (" + str(num_strokes) + "/" + str(num_words) + ")")
