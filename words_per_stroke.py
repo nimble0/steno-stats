@@ -1,70 +1,88 @@
 #!/usr/bin/python
 
-import re
 import sys
 
+# Plover setup
+from plover.config import CONFIG_FILE, Config
+from plover.registry import registry
+from plover import system
+from plover.dictionary.base import create_dictionary, load_dictionary
 
-if len(sys.argv) < 2:
-    exit()
-
-with open(sys.argv[1]) as data_file:
-    log = data_file.readlines()
-
-start_recording_translation = None
-stop_recording_translation = None
-
-if len(sys.argv) >= 3:
-    start_recording_translation = sys.argv[2]
-
-if len(sys.argv) >= 4:
-    stop_recording_translation = sys.argv[3]
+def setup():
+    config = Config()
+    config.target_file = CONFIG_FILE
+    with open(config.target_file, 'rb') as f:
+        config.load(f)
+        registry.load_plugins()
+        registry.update()
+        system_name = config.get_system_name()
+        system.setup(system_name)
 
 
-recording = start_recording_translation is None
-num_strokes = 0
-num_words = 0
+setup()
 
-for line in log:
-    match = re.match(r"""
-        ^[0-9\-:, ]*
-        (?P<removal>\*?)Translation\(
-        \((?P<strokes>[A-Z\-,'* ]*)\)
-        \s* : \s*
-        \"(?P<translation>(?:[^\\\"]|(?:\\\\)*\\[^\"]|(?:\\\\)*\\\")*)\"
-        \)
-        """,
-        line,
-        re.VERBOSE)
+from argparse import ArgumentParser
+import log_reader
+import plover.formatting
 
-    if match:
-        removal = match.group("removal") == "*"
 
-        strokes = match.group("strokes").split(",")
-        words = re.findall(r"[a-zA-Z\-']*", re.sub(r"{.*}", "", match.group("translation")))
+arg_parser = ArgumentParser(description="Calculate strokes per word in plover logs.")
+arg_parser.add_argument("logs", nargs="+", help="log file paths")
+arg_parser.add_argument("-r", "--resume", help="start recording after encountering this translation")
+arg_parser.add_argument("-s", "--suspend", help="stop recording when encountering this translation")
+args = arg_parser.parse_args()
 
-        if match.group("translation") == start_recording_translation:
-            recording = True
-        elif match.group("translation") == stop_recording_translation:
-            recording = False
-        elif recording:
-            entry_num_strokes = 0
-            entry_num_words = 0
+log = []
+for log_file in args.logs:
+    with open(log_file) as data_file:
+        log += data_file.readlines()
 
-            for stroke in strokes:
-                if not stroke.isspace() and len(stroke) > 0:
-                    entry_num_strokes += 1
+UNDO_PREFIX = "{UNDO} "
 
-            for word in words:
-                if not word.isspace() and len(word) > 0:
-                    entry_num_words += 1
 
-            if removal:
-                num_strokes -= entry_num_strokes
-                num_words -= entry_num_words
+actions_buffer = []
+
+stroke_count = 0
+character_count = 0
+
+def process_translation(undo_translations, translation, is_undo):
+    global actions_buffer
+
+    global stroke_count
+    global character_count
+
+
+    if not is_undo:
+        stroke_count += 1
+
+    for translation_ in undo_translations:
+        actions = plover.formatting._translation_to_actions(
+            translation_.translation,
+            actions_buffer[-1] if len(actions_buffer) > 0 else plover.formatting._Action(),
+            False)
+
+        for action in reversed(actions):
+            if action == actions_buffer[-1]:
+                actions_buffer.pop()
+                character_count -= len(action.text)
             else:
-                num_strokes += entry_num_strokes
-                num_words += entry_num_words
+                # Error undoing actions
+                break
+
+    actions = plover.formatting._translation_to_actions(
+        translation.translation,
+        actions_buffer[-1] if len(actions_buffer) > 0 else plover.formatting._Action(),
+        False)
+
+    actions_buffer += actions
+
+    for action in actions:
+        character_count += len(action.text)
+
+log_reader.process_log(log, process_translation, args.resume, args.suspend)
+
+word_count = character_count*0.2
 
 print("Strokes per word = "
-    + (str(float(num_strokes)/num_words) if num_words > 0 else "n/a")
-    + " (" + str(num_strokes) + "/" + str(num_words) + ")")
+    + (str(float(stroke_count)/word_count) if character_count > 0 else "n/a")
+    + " (" + str(stroke_count) + "/" + str(word_count) + ")")
