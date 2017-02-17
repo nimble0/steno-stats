@@ -2,28 +2,32 @@
 
 import sys
 
-# Plover setup
-from plover.config import CONFIG_FILE, Config
-from plover.registry import registry
-from plover import system
-from plover.dictionary.base import create_dictionary, load_dictionary
+try:
+    # Plover setup
+    from plover.config import CONFIG_FILE, Config
+    from plover.registry import registry
+    from plover import system
+    from plover.dictionary.base import create_dictionary, load_dictionary
 
-def setup():
-    config = Config()
-    config.target_file = CONFIG_FILE
-    with open(config.target_file, 'rb') as f:
-        config.load(f)
-        registry.load_plugins()
-        registry.update()
-        system_name = config.get_system_name()
-        system.setup(system_name)
+    def setup():
+        config = Config()
+        config.target_file = CONFIG_FILE
+        with open(config.target_file, 'rb') as f:
+            config.load(f)
+            registry.load_plugins()
+            registry.update()
+            system_name = config.get_system_name()
+            system.setup(system_name)
 
+    setup()
 
-setup()
+    import plover.formatting
+except ImportError:
+    print("Error initialising Plover. Make sure Plover is added to PYTHONPATH.")
+    sys.exit()
 
 from argparse import ArgumentParser
 import log_reader
-import plover.formatting
 
 
 arg_parser = ArgumentParser(description="Calculate strokes per word in plover logs.")
@@ -37,25 +41,17 @@ for log_file in args.logs:
     with open(log_file) as data_file:
         log += data_file.readlines()
 
-UNDO_PREFIX = "{UNDO} "
-
+log_strokes = log_reader.process_log(log, args.resume, args.suspend)
 
 actions_buffer = []
 
 stroke_count = 0
 character_count = 0
 
-def process_translation(undo_translations, translation, is_undo):
-    global actions_buffer
+for log_stroke in log_strokes:
+    stroke_count += 1
 
-    global stroke_count
-    global character_count
-
-
-    if not is_undo:
-        stroke_count += 1
-
-    for translation_ in undo_translations:
+    for translation_ in log_stroke.undo_translations:
         actions = plover.formatting._translation_to_actions(
             translation_.translation,
             actions_buffer[-1] if len(actions_buffer) > 0 else plover.formatting._Action(),
@@ -69,17 +65,16 @@ def process_translation(undo_translations, translation, is_undo):
                 # Error undoing actions
                 break
 
-    actions = plover.formatting._translation_to_actions(
-        translation.translation,
-        actions_buffer[-1] if len(actions_buffer) > 0 else plover.formatting._Action(),
-        False)
+    for translation_ in log_stroke.do_translations:
+        actions = plover.formatting._translation_to_actions(
+            translation_.translation,
+            actions_buffer[-1] if len(actions_buffer) > 0 else plover.formatting._Action(),
+            False)
 
-    actions_buffer += actions
+        actions_buffer += actions
 
-    for action in actions:
-        character_count += len(action.text)
-
-log_reader.process_log(log, process_translation, args.resume, args.suspend)
+        for action in actions:
+            character_count += len(action.text)
 
 word_count = character_count*0.2
 
