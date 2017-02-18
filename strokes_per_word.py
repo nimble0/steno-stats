@@ -34,6 +34,7 @@ arg_parser = ArgumentParser(description="Calculate strokes per word in plover lo
 arg_parser.add_argument("logs", nargs="+", help="log file paths")
 arg_parser.add_argument("-r", "--resume", help="start recording after encountering this translation")
 arg_parser.add_argument("-s", "--suspend", help="stop recording when encountering this translation")
+arg_parser.add_argument("-u", "--undos", action="store_true", help="count undone strokes and undo strokes")
 args = arg_parser.parse_args()
 
 log = []
@@ -49,7 +50,10 @@ stroke_count = 0
 character_count = 0
 
 for log_stroke in log_strokes:
-    stroke_count += 1
+    if log_stroke.stroke == "*" and not args.undos:
+        stroke_count -= 2
+    else:
+        stroke_count += 1
 
     for translation_ in log_stroke.undo_translations:
         actions = plover.formatting._translation_to_actions(
