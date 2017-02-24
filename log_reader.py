@@ -1,14 +1,41 @@
 #!/usr/bin/python
 
+import sys
+
+try:
+    # Plover setup
+    from plover.config import CONFIG_FILE, Config
+    from plover.registry import registry
+    from plover import system
+    from plover.dictionary.base import create_dictionary, load_dictionary
+
+    def setup():
+        config = Config()
+        config.target_file = CONFIG_FILE
+        with open(config.target_file, 'rb') as f:
+            config.load(f)
+            registry.load_plugins()
+            registry.update()
+            system_name = config.get_system_name()
+            system.setup(system_name)
+
+    setup()
+
+    import plover.formatting
+except ImportError:
+    print("Error initialising Plover. Make sure Plover is added to PYTHONPATH.")
+    sys.exit()
+
 import re
 import datetime
 
 
 class Translation:
-    def __init__(self, time, translation, strokes):
+    def __init__(self, time, translation, strokes, text):
         self.time = time
         self.translation = translation
         self.strokes = strokes
+        self.text = text
 
 class LogStroke:
     def __init__(self, time, undo_translations, do_translations, stroke):
@@ -103,6 +130,7 @@ def process_log(lines, resume, suspend):
     is_previous_translation_removal = False
 
     log_strokes = []
+    actions_buffer = []
 
     for line in lines:
         match = re.match(r"""
@@ -110,7 +138,7 @@ def process_log(lines, resume, suspend):
             (?P<removal>\*?)Translation\(
             \((?P<strokes>[A-Z\-,'* ]*)\)
             \s* : \s*
-            \"(?P<translation>(?:[^\\\"]|(?:\\\\)*\\[^\"]|(?:\\\\)*\\\")*)\"
+            (?:(?:\"(?P<translation>(?:[^\\\"]|(?:\\\\)*\\[^\"]|(?:\\\\)*\\\")*)\")|None)
             \)
             """,
             line,
@@ -124,10 +152,34 @@ def process_log(lines, resume, suspend):
             if len(strokes) > 0 and len(strokes[-1]) == 0:
                 strokes = strokes[:-1]
 
+            actions = []
+            if not match.group("translation") is None:
+                actions = plover.formatting._translation_to_actions(
+                    match.group("translation"),
+                    actions_buffer[-1] if len(actions_buffer) > 0 else plover.formatting._Action(),
+                    False)
+
+            actions_text = ""
+            for action in actions:
+                actions_text += action.text
+
             translation = Translation(
                 datetime.datetime.strptime(match.group("time").strip(), "%Y-%m-%d %H:%M:%S,%f"),
                 match.group("translation"),
-                strokes)
+                strokes,
+                actions_text)
+
+
+            if removal:
+                for action in reversed(actions):
+                    if action == actions_buffer[-1]:
+                        actions_buffer.pop()
+                    else:
+                        # Error undoing actions
+                        break
+            else:
+                actions_buffer += actions
+
 
             if translation.translation == resume:
                 recording = True

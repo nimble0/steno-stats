@@ -38,6 +38,7 @@ log_strokes = log_reader.process_log(log, args.resume, args.suspend)
 
 
 UNDO_PREFIX = "{UNDO} "
+UNTRANSLATE = "{NONE}"
 
 class TranslationCounts:
     counts = {}
@@ -67,6 +68,10 @@ class TranslationCounts:
 translation_counts = TranslationCounts()
 
 for log_stroke in log_strokes:
+    for translation in log_stroke.undo_translations + log_stroke.do_translations:
+        if translation.translation is None:
+            translation.translation = UNTRANSLATE
+
     if log_stroke.stroke == "*":
         # Undo stroke can have no undo translations when
         # Plover's undo buffer is empty
@@ -80,9 +85,10 @@ for log_stroke in log_strokes:
                 translation.translation,
                 strokes_to_string(translation.strokes))
 
-        translation_counts.add(
-            log_stroke.do_translations[0].translation,
-            strokes_to_string(log_stroke.do_translations[0].strokes))
+        for translation in log_stroke.do_translations:
+            translation_counts.add(
+                translation.translation,
+                strokes_to_string(translation.strokes))
 
 translation_counts.clean()
 
