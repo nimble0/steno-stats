@@ -26,13 +26,17 @@ def match_strokes(
     if not ignore_perfect and strokes_str in dictionary_entries:
         matches[strokes_str] = 1
 
+    direct_match = None
     direct_matches = 0
     if not ignore_larger:
         for strokes2 in [x for x in dictionary_entries
             if x[:len(strokes)] == strokes and len(x) > len(strokes)]:
+            direct_match = strokes2
             direct_matches += 1
 
-    if direct_matches > 0:
+    if direct_matches == 1:
+        matches["/".join(direct_match)] = 1
+    elif direct_matches > 0:
         matches[strokes_str + "/"] = direct_matches
 
     for strokes2 in [x for x in dictionary_entries
@@ -72,6 +76,7 @@ arg_parser = ArgumentParser(description="Find potential word boundary errors in 
 arg_parser.add_argument("dictionaries", nargs="+", help="dictionary file paths")
 arg_parser.add_argument("-ht", "--hide_trivial", action="store_true", help="hide trivial matches")
 arg_parser.add_argument("-sl", "--strokes_list", help="only look for boundary errors involving this stroke list")
+arg_parser.add_argument("-at", "--add_translations", action="store_true", help="add translations to stroke lists")
 args = arg_parser.parse_args()
 
 dictionary_entries = {}
@@ -149,6 +154,30 @@ else:
 
     for boundary_error in remove_boundary_errors:
         del boundary_errors[boundary_error]
+
+if args.add_translations:
+    boundary_errors_with_translations = {}
+
+    for strokes, matches in boundary_errors.items():
+        matches_with_translations = {}
+        for match_strokes, count in matches.items():
+            translations = []
+            for strokes_ in match_strokes.split(" "):
+                if strokes_ in dictionary_entries:
+                    translations.append(dictionary_entries[strokes_])
+                else:
+                    translations.append(strokes_)
+
+            matches_with_translations[match_strokes + ": " + " ".join(translations)] = count
+
+        if strokes in dictionary_entries:
+            boundary_errors_with_translations[strokes + ": " + dictionary_entries[strokes]] = \
+                matches_with_translations
+        else:
+            boundary_errors_with_translations[strokes] = \
+                matches_with_translations
+
+    boundary_errors = boundary_errors_with_translations
 
 # Sort dictionaries by reverse counts
 sorted_boundary_errors = OrderedDict(sorted(
