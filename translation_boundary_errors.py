@@ -53,10 +53,25 @@ def match_strokes(
 
     return matches
 
+def contains(list_a, list_b):
+    for i in range(0, len(list_a)-len(list_b)+1):
+        if list_a[i:i + len(list_b)] == list_b:
+            return True
 
-arg_parser = ArgumentParser(description="Find word boundary errors in dictionaries.")
+    return False
+
+def common_prefix_suffix(list_a, list_b):
+    for i in range(-len(list_b)+1, 0):
+        if list_a[i:] == list_b[:-i]:
+            return True
+
+    return False
+
+
+arg_parser = ArgumentParser(description="Find potential word boundary errors in dictionaries.")
 arg_parser.add_argument("dictionaries", nargs="+", help="dictionary file paths")
 arg_parser.add_argument("-ht", "--hide_trivial", action="store_true", help="hide trivial matches")
+arg_parser.add_argument("-sl", "--strokes_list", help="only look for boundary errors involving this stroke list")
 args = arg_parser.parse_args()
 
 dictionary_entries = {}
@@ -71,25 +86,69 @@ dictionary_entries_list = [strokes.split("/")
 boundary_errors = {}
 
 cached_suffix_strokes = {}
-entry_i = 0
-for strokes in dictionary_entries_list:
-    if len(strokes) > 1:
-        entry_boundary_errors = []
+if args.strokes_list is None:
+    entry_i = 0
+    for strokes in dictionary_entries_list:
+        if len(strokes) > 1:
+            entry_boundary_errors = match_strokes(
+                dictionary_entries_list,
+                strokes,
+                cached_suffix_strokes,
+                args.hide_trivial,
+                args.hide_trivial)
+            if len(entry_boundary_errors) > 0:
+                boundary_errors["/".join(strokes)] = entry_boundary_errors
 
-        entry_boundary_errors = match_strokes(
-            dictionary_entries_list,
-            strokes,
-            cached_suffix_strokes,
-            args.hide_trivial,
-            args.hide_trivial)
-        if len(entry_boundary_errors) > 0:
-            boundary_errors["/".join(strokes)] = entry_boundary_errors
+        pre_progress_percent = (100*entry_i)/len(dictionary_entries_list)
+        entry_i += 1
+        post_progress_percent = (100*entry_i)/len(dictionary_entries_list)
+        if post_progress_percent > pre_progress_percent:
+            print(str(post_progress_percent) + "%", file=sys.stderr)
+else:
+    must_involve_strokes = args.strokes_list.split("/")
 
-    pre_progress_percent = (100*entry_i)/len(dictionary_entries_list)
-    entry_i += 1
-    post_progress_percent = (100*entry_i)/len(dictionary_entries_list)
-    if post_progress_percent > pre_progress_percent:
-        print(str(post_progress_percent) + "%", file=sys.stderr)
+    dictionary_entries_list.append(must_involve_strokes)
+
+    for i in range(1, len(must_involve_strokes) + 1 if not args.hide_trivial else 0):
+        cached_suffix_strokes["/".join(must_involve_strokes[:i])] = { args.strokes_list: 1 }
+
+    for strokes in [x for x in dictionary_entries_list
+        if contains(x, must_involve_strokes)
+        or common_prefix_suffix(x, must_involve_strokes)]:
+
+        if len(strokes) > 1:
+            entry_boundary_errors = match_strokes(
+                dictionary_entries_list,
+                strokes,
+                cached_suffix_strokes,
+                args.hide_trivial,
+                args.hide_trivial)
+            if len(entry_boundary_errors) > 0:
+                boundary_errors["/".join(strokes)] = entry_boundary_errors
+
+    remove_boundary_errors = []
+    for boundary_error, matches in boundary_errors.items():
+        if boundary_error == args.strokes_list:
+            continue
+
+        remove_matches = []
+        for match in matches:
+            parts = match.split(" ")
+
+            tail_strokes = parts[-1].split("/")[:-1]
+
+            if not (must_involve_strokes in parts
+                or tail_strokes == must_involve_strokes[:len(tail_strokes)]):
+                remove_matches.append(match)
+
+        for match in remove_matches:
+            del matches[match]
+
+        if len(matches) == 0:
+            remove_boundary_errors.append(boundary_error)
+
+    for boundary_error in remove_boundary_errors:
+        del boundary_errors[boundary_error]
 
 # Sort dictionaries by reverse counts
 sorted_boundary_errors = OrderedDict(sorted(
@@ -102,4 +161,4 @@ for translation in sorted_boundary_errors.keys():
 print(json.dumps(sorted_boundary_errors,
     ensure_ascii = False,
     indent = 2,
-    separators = (',', ': ')))
+    separators = (",", ": ")).encode("utf-8"))
