@@ -39,19 +39,18 @@ def match_strokes(
     elif direct_matches > 0:
         matches[strokes_str + "/"] = direct_matches
 
-    for strokes2 in [x for x in dictionary_entries
-        if x == strokes[:len(x)] and len(x) < len(strokes)]:
+    for n in range(0, len(strokes)):
+        if strokes[:n] in dictionary_entries:
+            sub_matches = match_strokes(
+                dictionary_entries,
+                strokes[n:],
+                cached_suffix_strokes,
+                ignore_perfect)
 
-        partial_match_str = "/".join(strokes[:len(strokes2)]) + " "
+            partial_match_str = "/".join(strokes[:n]) + " "
 
-        sub_matches = match_strokes(
-            dictionary_entries,
-            strokes[len(strokes2):],
-            cached_suffix_strokes,
-            ignore_perfect)
-
-        for match, count in sub_matches.items():
-            matches[partial_match_str + match] = count
+            for match, count in sub_matches.items():
+                matches[partial_match_str + match] = count
 
     cached_suffix_strokes[strokes_str] = matches
 
@@ -84,8 +83,8 @@ for dictionary_file in args.dictionaries:
     with open(dictionary_file) as data_file:
         dictionary_entries.update(json.load(data_file))
 
-dictionary_entries_list = [strokes.split("/")
-    for strokes, translation in dictionary_entries.items()]
+dictionary_entries_strokes = set([tuple(strokes.split("/"))
+    for strokes, translation in dictionary_entries.items()])
 
 
 boundary_errors = {}
@@ -93,10 +92,10 @@ boundary_errors = {}
 cached_suffix_strokes = {}
 if args.strokes_list is None:
     entry_i = 0
-    for strokes in dictionary_entries_list:
+    for strokes in dictionary_entries_strokes:
         if len(strokes) > 1:
             entry_boundary_errors = match_strokes(
-                dictionary_entries_list,
+                dictionary_entries_strokes,
                 strokes,
                 cached_suffix_strokes,
                 args.hide_trivial,
@@ -104,26 +103,26 @@ if args.strokes_list is None:
             if len(entry_boundary_errors) > 0:
                 boundary_errors["/".join(strokes)] = entry_boundary_errors
 
-        pre_progress_percent = (100*entry_i)/len(dictionary_entries_list)
+        pre_progress_percent = (100*entry_i)/len(dictionary_entries_strokes)
         entry_i += 1
-        post_progress_percent = (100*entry_i)/len(dictionary_entries_list)
+        post_progress_percent = (100*entry_i)/len(dictionary_entries_strokes)
         if post_progress_percent > pre_progress_percent:
             print(str(post_progress_percent) + "%", file=sys.stderr)
 else:
-    must_involve_strokes = args.strokes_list.split("/")
+    must_involve_strokes = tuple(args.strokes_list.split("/"))
 
-    dictionary_entries_list.append(must_involve_strokes)
+    dictionary_entries_strokes.add(must_involve_strokes)
 
     for i in range(1, len(must_involve_strokes) + 1 if not args.hide_trivial else 0):
         cached_suffix_strokes["/".join(must_involve_strokes[:i])] = { args.strokes_list: 1 }
 
-    for strokes in [x for x in dictionary_entries_list
+    for strokes in [x for x in dictionary_entries_strokes
         if contains(x, must_involve_strokes)
         or common_prefix_suffix(x, must_involve_strokes)]:
 
         if len(strokes) > 1:
             entry_boundary_errors = match_strokes(
-                dictionary_entries_list,
+                dictionary_entries_strokes,
                 strokes,
                 cached_suffix_strokes,
                 args.hide_trivial,
@@ -140,7 +139,7 @@ else:
         for match in matches:
             parts = match.split(" ")
 
-            tail_strokes = parts[-1].split("/")[:-1]
+            tail_strokes = tuple(parts[-1].split("/")[:-1])
 
             if not (must_involve_strokes in parts
                 or tail_strokes == must_involve_strokes[:len(tail_strokes)]):
