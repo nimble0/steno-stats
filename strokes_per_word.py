@@ -4,7 +4,7 @@ import log_reader
 from argparse import ArgumentParser
 
 
-arg_parser = ArgumentParser(description="Calculate strokes per word in plover logs.")
+arg_parser = ArgumentParser(description="Calculate strokes per word in plover logs. Outputs to standard out.")
 arg_parser.add_argument("logs", nargs="+", help="log file paths")
 arg_parser.add_argument("-r", "--resume", help="start recording after encountering this translation")
 arg_parser.add_argument("-s", "--suspend", help="stop recording when encountering this translation")

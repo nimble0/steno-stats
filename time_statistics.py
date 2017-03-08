@@ -120,7 +120,7 @@ class LogStat:
             ) if add_derived else "")
 
 
-arg_parser = ArgumentParser(description="Measure statistics over time in Plover logs.")
+arg_parser = ArgumentParser(description="Measure statistics over time in Plover logs. Outputs as CSV to standard out.")
 arg_parser.add_argument("logs", nargs="+", help="log file paths")
 arg_parser.add_argument("-r", "--resume", help="start recording after encountering this translation")
 arg_parser.add_argument("-s", "--suspend", help="stop recording when encountering this translation")

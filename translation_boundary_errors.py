@@ -71,7 +71,7 @@ def common_prefix_suffix(list_a, list_b):
     return False
 
 
-arg_parser = ArgumentParser(description="Find potential word boundary errors in dictionaries.")
+arg_parser = ArgumentParser(description="Find potential translation boundary errors in dictionaries. Outputs a JSON formatted dictionary of stroke sequences and a list of their potential translation boundary errors to standard out.")
 arg_parser.add_argument("dictionaries", nargs="+", help="dictionary file paths")
 arg_parser.add_argument("-ht", "--hide_trivial", action="store_true", help="hide trivial matches")
 arg_parser.add_argument("-sl", "--strokes_list", help="only look for boundary errors involving this stroke list")
