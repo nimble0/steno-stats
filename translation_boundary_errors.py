@@ -71,11 +71,12 @@ def common_prefix_suffix(list_a, list_b):
     return False
 
 
-arg_parser = ArgumentParser(description="Find potential translation boundary errors in dictionaries. Outputs a JSON formatted dictionary of stroke sequences and a list of their potential translation boundary errors to standard out.")
+arg_parser = ArgumentParser(description="Find potential translation boundary errors in dictionaries. Outputs a JSON formatted dictionary of stroke sequences and a list of their potential translation boundary errors to standard out. This can be slow to run, consider using the --progress option.")
 arg_parser.add_argument("dictionaries", nargs="+", help="dictionary file paths")
 arg_parser.add_argument("-ht", "--hide_trivial", action="store_true", help="hide trivial matches")
-arg_parser.add_argument("-sl", "--strokes_list", help="only look for boundary errors involving this stroke list")
+arg_parser.add_argument("-ss", "--strokes_sequence", help="only look for boundary errors involving this stroke sequence")
 arg_parser.add_argument("-at", "--add_translations", action="store_true", help="add translations to stroke lists")
+arg_parser.add_argument("-p", "--progress", action="store_true", help="output progress percentage on standard error")
 args = arg_parser.parse_args()
 
 dictionary_entries = {}
@@ -90,7 +91,7 @@ dictionary_entries_strokes = set([tuple(strokes.split("/"))
 boundary_errors = {}
 
 cached_suffix_strokes = {}
-if args.strokes_list is None:
+if args.strokes_sequence is None:
     entry_i = 0
     for strokes in dictionary_entries_strokes:
         if len(strokes) > 1:
@@ -103,23 +104,26 @@ if args.strokes_list is None:
             if len(entry_boundary_errors) > 0:
                 boundary_errors["/".join(strokes)] = entry_boundary_errors
 
-        pre_progress_percent = (100*entry_i)/len(dictionary_entries_strokes)
-        entry_i += 1
-        post_progress_percent = (100*entry_i)/len(dictionary_entries_strokes)
-        if post_progress_percent > pre_progress_percent:
-            print(str(post_progress_percent) + "%", file=sys.stderr)
+        if args.progress:
+            pre_progress_percent = (100*entry_i)/len(dictionary_entries_strokes)
+            entry_i += 1
+            post_progress_percent = (100*entry_i)/len(dictionary_entries_strokes)
+            if post_progress_percent > pre_progress_percent:
+                print(str(post_progress_percent) + "%", file=sys.stderr)
 else:
-    must_involve_strokes = tuple(args.strokes_list.split("/"))
+    must_involve_strokes = tuple(args.strokes_sequence.split("/"))
 
     dictionary_entries_strokes.add(must_involve_strokes)
 
     for i in range(1, len(must_involve_strokes) + 1 if not args.hide_trivial else 0):
-        cached_suffix_strokes["/".join(must_involve_strokes[:i])] = { args.strokes_list: 1 }
+        cached_suffix_strokes["/".join(must_involve_strokes[:i])] = { args.strokes_sequence: 1 }
 
-    for strokes in [x for x in dictionary_entries_strokes
+    relevant_dictionary_entries = [x for x in dictionary_entries_strokes
         if contains(x, must_involve_strokes)
-        or common_prefix_suffix(x, must_involve_strokes)]:
+        or common_prefix_suffix(x, must_involve_strokes)]
 
+    entry_i = 0
+    for strokes in relevant_dictionary_entries:
         if len(strokes) > 1:
             entry_boundary_errors = match_strokes(
                 dictionary_entries_strokes,
@@ -130,9 +134,16 @@ else:
             if len(entry_boundary_errors) > 0:
                 boundary_errors["/".join(strokes)] = entry_boundary_errors
 
+        if args.progress:
+            pre_progress_percent = (100*entry_i)/len(relevant_dictionary_entries)
+            entry_i += 1
+            post_progress_percent = (100*entry_i)/len(relevant_dictionary_entries)
+            if post_progress_percent > pre_progress_percent:
+                print(str(post_progress_percent) + "%", file=sys.stderr)
+
     remove_boundary_errors = []
     for boundary_error, matches in boundary_errors.items():
-        if boundary_error == args.strokes_list:
+        if boundary_error == args.strokes_sequence:
             continue
 
         remove_matches = []

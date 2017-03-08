@@ -124,10 +124,8 @@ arg_parser = ArgumentParser(description="Measure statistics over time in Plover 
 arg_parser.add_argument("logs", nargs="+", help="log file paths")
 arg_parser.add_argument("-r", "--resume", help="start recording after encountering this translation")
 arg_parser.add_argument("-s", "--suspend", help="stop recording when encountering this translation")
-arg_parser.add_argument("-sr", "--speed-resume", type=float, help="stroke/s to start recording on")
-arg_parser.add_argument("-ss", "--speed-suspend", type=float, help="stroke/s to stop recording on")
-arg_parser.add_argument("-sw", "--speed-window", type=float, help="duration of time (seconds) to sample for measuring stroke speed")
-arg_parser.add_argument("-w", "--sample-window", type=float, help="duration of time (seconds) to sample for each discrete statistic")
+arg_parser.add_argument("-sa", "--speed_activation", nargs=3, type=float, help="speed to start recording on (stroke/second), speed to stop recording on (stroke/second), length of window to check speed in (seconds)")
+arg_parser.add_argument("-w", "--sample-window", required=True, type=float, help="duration of time (seconds) to sample for each discrete statistic")
 arg_parser.add_argument("--raw", action="store_true", help="raw statistics only, no derived")
 args = arg_parser.parse_args()
 
@@ -140,11 +138,13 @@ log_strokes = log_reader.process_log(log, args.resume, args.suspend)
 
 sample_duration = datetime.timedelta(seconds = args.sample_window)
 
-active_periods = speed_filter(
-    log_strokes,
-    args.speed_resume,
-    args.speed_suspend,
-    datetime.timedelta(seconds = args.speed_window))
+active_periods = [(log_strokes[0].time, log_strokes[-1].time)]
+if not args.speed_activation is None:
+    active_periods = speed_filter(
+        log_strokes,
+        args.speed_activation[0],
+        args.speed_activation[1],
+        datetime.timedelta(seconds = args.speed_activation[2]))
 
 log_stats = []
 log_stats.append(LogStat((log_strokes[0].time, log_strokes[0].time + sample_duration)))

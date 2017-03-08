@@ -43,9 +43,9 @@ Count entry counts in plover logs. Outputs a JSON formatted dictionary of transl
 
 Requires Plover source in the PYTHONPATH environment variable (prefix the command with PYTHONPATH=/path/to/plover).
 
-**usage**: time_statistics.py [-h] [-r RESUME] [-s SUSPEND] [-sr SPEED_RESUME]
-                          [-ss SPEED_SUSPEND] [-sw SPEED_WINDOW]
-                          [-w SAMPLE_WINDOW] [--raw]
+**usage**: time_statistics.py [-h] [-r RESUME] [-s SUSPEND]
+                          [-sa SPEED_ACTIVATION SPEED_ACTIVATION SPEED_ACTIVATION]
+                          -w SAMPLE_WINDOW [--raw]
                           logs [logs ...]
 
 Measure statistics over time in Plover logs. Outputs as CSV to standard out.
@@ -59,13 +59,10 @@ Measure statistics over time in Plover logs. Outputs as CSV to standard out.
                         start recording after encountering this translation
 * *-s SUSPEND, --suspend SUSPEND*
                         stop recording when encountering this translation
-* *-sr SPEED_RESUME, --speed-resume SPEED_RESUME*
-                        stroke/s to start recording on
-* *-ss SPEED_SUSPEND, --speed-suspend SPEED_SUSPEND*
-                        stroke/s to stop recording on
-* *-sw SPEED_WINDOW, --speed-window SPEED_WINDOW*
-                        duration of time (seconds) to sample for measuring
-                        stroke speed
+* * -sa SPEED_ACTIVATION SPEED_ACTIVATION SPEED_ACTIVATION, --speed_activation SPEED_ACTIVATION SPEED_ACTIVATION SPEED_ACTIVATION*
+                        speed to start recording on (stroke/second), speed to
+                        stop recording on (stroke/second), length of window to
+                        check speed in (seconds)
 * *-w SAMPLE_WINDOW, --sample-window SAMPLE_WINDOW*
                         duration of time (seconds) to sample for each discrete
                         statistic
@@ -99,10 +96,14 @@ Count n-strokes in plover logs. Outputs a JSON formatted dictionary of stroke se
 
 ## translation_boundary_errors.py
 
-**usage**: translation_boundary_errors.py [-h] [-ht] [-sl STROKES_LIST] [-at]
+**usage**: translation_boundary_errors.py [-h] [-ht] [-ss STROKES_SEQUENCE] [-at]
+                                      [-p]
                                       dictionaries [dictionaries ...]
 
-Find potential word boundary errors in dictionaries. Outputs a JSON formatted dictionary of stroke sequences and a list of their potential translation boundary errors to standard out.
+Find potential translation boundary errors in dictionaries. Outputs a JSON
+formatted dictionary of stroke sequences and a list of their potential
+translation boundary errors to standard out. This can be slow to run, consider
+using the --progress option.
 
 **positional arguments**:
 * *dictionaries*        dictionary file paths
@@ -110,8 +111,9 @@ Find potential word boundary errors in dictionaries. Outputs a JSON formatted di
 **optional arguments**:
 * *-h, --help*          show this help message and exit
 * *-ht, --hide_trivial* hide trivial matches
-* *-sl STROKES_LIST, --strokes_list STROKES_LIST*
+* *-ss STROKES_SEQUENCE, --strokes_sequence STROKES_SEQUENCE*
                         only look for boundary errors involving this stroke
-                        list
+                        sequence
 * *-at, --add_translations*
                         add translations to stroke lists
+* *-p, --progress*      output progress percentage on standard error
