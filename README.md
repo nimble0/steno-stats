@@ -1,6 +1,6 @@
 # Steno stats
 
-Provides scripts for analyzing Plover logs and dictionaries and giving various information.
+Scripts for analyzing Plover logs and dictionaries and giving various information.
 
 
 ## strokes_per_word.py
@@ -96,7 +96,7 @@ Count n-strokes in plover logs. Outputs a JSON formatted dictionary of stroke se
 
 ## translation_boundary_errors.py
 
-**usage**: translation_boundary_errors.py [-h] [-ht] [-ss STROKES_SEQUENCE] [-at]
+**usage**: translation_boundary_errors.py [-h] [-ht] [-ss STROKE_SEQUENCE] [-at]
                                       [-p]
                                       dictionaries [dictionaries ...]
 
@@ -110,8 +110,9 @@ using the --progress option.
 
 **optional arguments**:
 * *-h, --help*          show this help message and exit
-* *-ht, --hide_trivial* hide trivial matches
-* *-ss STROKES_SEQUENCE, --strokes_sequence STROKES_SEQUENCE*
+* *-t, --trivial*       include trivial matches, these are matches where the
+                        strokes match exactly (eg/ A/HED and A HED)
+* *-ss STROKE_SEQUENCE, --stroke_sequence STROKE_SEQUENCE*
                         only look for boundary errors involving this stroke
                         sequence
 * *-at, --add_translations*
