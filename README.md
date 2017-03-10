@@ -68,7 +68,7 @@ Measure statistics over time in Plover logs. Outputs as CSV to standard out.
                         statistic
 * *--raw*               raw statistics only, no derived
 
-## n_strokes.py
+## stroke_ngrams.py
 
 Requires Plover source in the PYTHONPATH environment variable (prefix the command with PYTHONPATH=/path/to/plover).
 
@@ -76,7 +76,7 @@ Requires Plover source in the PYTHONPATH environment variable (prefix the comman
                     [-c MIN_COUNT] [-l LIMIT_OUTPUT]
                     logs [logs ...]
 
-Count n-strokes in plover logs. Outputs a JSON formatted dictionary of stroke sequences and their counts to standard out.
+Count stroke n-grams in plover logs. Outputs a JSON formatted dictionary of stroke sequences and their counts to standard out.
 
 **positional arguments**:
 * *logs*                log file paths
@@ -88,7 +88,7 @@ Count n-strokes in plover logs. Outputs a JSON formatted dictionary of stroke se
 * *-s SUSPEND, --suspend SUSPEND*
                         stop recording when encountering this translation
 * *-n RANGE RANGE, --range RANGE RANGE*
-                        range of n-strokes to track
+                        range of stroke n-grams to track
 * *-c MIN_COUNT, --min-count MIN_COUNT*
                         minimum count to output
 * *-l LIMIT_OUTPUT, --limit-output LIMIT_OUTPUT*

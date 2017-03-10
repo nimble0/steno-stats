@@ -13,12 +13,12 @@ except ImportError:
     import json
 
 
-arg_parser = ArgumentParser(description="Count n-strokes in plover logs. Outputs a JSON formatted dictionary of stroke sequences and their counts to standard out.")
+arg_parser = ArgumentParser(description="Count stroke n-grams in plover logs. Outputs a JSON formatted dictionary of stroke sequences and their counts to standard out.")
 arg_parser.add_argument("logs", nargs="+", help="log file paths")
 arg_parser.add_argument("-r", "--resume", help="start recording after encountering this translation")
 arg_parser.add_argument("-s", "--suspend", help="stop recording when encountering this translation")
 arg_parser.add_argument("-n", "--range", required=True, nargs=2, type=int,
-    help="range of n-strokes to track")
+    help="range of stroke n-grams to track")
 arg_parser.add_argument("-c", "--min-count", type=int, help="minimum count to output")
 arg_parser.add_argument("-l", "--limit-output", type=int, help="maximum output entries")
 args = arg_parser.parse_args()
