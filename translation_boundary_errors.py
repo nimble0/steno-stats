@@ -117,7 +117,7 @@ def common_prefix_suffix(list_a, list_b):
     return False
 
 
-arg_parser = ArgumentParser(description="Find potential translation boundary errors in dictionaries. Outputs a JSON formatted dictionary of stroke sequences and a list of their potential translation boundary errors to standard out. This can be slow to run, consider using the --progress option.")
+arg_parser = ArgumentParser(description="Find potential translation boundary errors in dictionaries. Outputs a JSON formatted dictionary of stroke sequences and a list of their potential translation boundary errors to standard out.")
 arg_parser.add_argument("dictionaries", nargs="+", help="dictionary file paths")
 arg_parser.add_argument("-t", "--trivial", action="store_true", help="include trivial matches, these are matches where the strokes match exactly (eg/ A/HED and A HED)")
 arg_parser.add_argument("-ss", "--stroke_sequence", help="only look for boundary errors involving this stroke sequence")

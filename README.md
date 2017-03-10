@@ -102,8 +102,7 @@ Count n-strokes in plover logs. Outputs a JSON formatted dictionary of stroke se
 
 Find potential translation boundary errors in dictionaries. Outputs a JSON
 formatted dictionary of stroke sequences and a list of their potential
-translation boundary errors to standard out. This can be slow to run, consider
-using the --progress option.
+translation boundary errors to standard out.
 
 **positional arguments**:
 * *dictionaries*        dictionary file paths
