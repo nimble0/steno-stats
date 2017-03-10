@@ -48,16 +48,14 @@ def intersection(a1, a2, b1, b2):
 
 
 class LogStat:
-    period = None
-
-    stroke_count = 0
-    character_count = 0
-    undo_stroke_count = 0
-    undo_character_count = 0
-    active_time = datetime.timedelta(0)
-
     def __init__(self, period):
         self.period = period
+
+        self.stroke_count = 0
+        self.character_count = 0
+        self.undo_stroke_count = 0
+        self.undo_character_count = 0
+        self.active_time = datetime.timedelta(0)
 
     def add_period(self, period):
         period_intersection = intersection(

@@ -45,8 +45,9 @@ class LogStroke:
         self.stroke = stroke
 
 class TranslationsProcessor:
-    undos = []
-    dos = []
+    def __init__(self):
+        self.undos = []
+        self.dos = []
 
     def process_translations(self):
         def count_matching_translations(strokes, translations):

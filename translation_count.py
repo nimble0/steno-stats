@@ -41,7 +41,8 @@ UNDO_PREFIX = "{UNDO} "
 UNTRANSLATE = "{NONE}"
 
 class TranslationCounts:
-    counts = {}
+    def __init__(self):
+        self.counts = {}
 
     def ensure_count_initialised(self, translation, strokes):
         if not translation in self.counts:

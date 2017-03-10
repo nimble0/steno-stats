@@ -31,7 +31,8 @@ for log_file in args.logs:
 log_strokes = log_reader.process_log(log, args.resume, args.suspend)
 
 class StrokeListCounts:
-    counts = {}
+    def __init__(self):
+        self.counts = {}
 
     def ensure_count_initialised(self, stroke_list):
         if not stroke_list in self.counts:
