@@ -47,7 +47,6 @@ class StrokeListCounts:
         self.counts[stroke_list] -= 1
 
     def clean(self, min_count = 0):
-        # Remove zero count translation entries
         self.counts = {
             k: v for k, v in self.counts.iteritems() if v > min_count }
 
@@ -64,10 +63,7 @@ for log_stroke in log_strokes:
             if len(strokes) > i:
                 stroke_list_counts.add("/".join(strokes[-i:]))
 
-if args.min_count is None:
-    stroke_list_counts.clean()
-else:
-    stroke_list_counts.clean(args.min_count)
+stroke_list_counts.clean(args.min_count if not args.min_count is None else 0)
 
 # Sort dictionaries by reverse counts
 sorted_stroke_list_counts_ = sorted(
