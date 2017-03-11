@@ -21,6 +21,15 @@ Calculate strokes per word in plover logs. Outputs to standard out.
 * *-s SUSPEND, --suspend SUSPEND*
                         stop recording when encountering this translation
 
+**example**:
+
+```PYTHONPATH=~/projects/plover python strokes_per_word.py -r {PLOVER:RESUME} -s {PLOVER:SUSPEND} ~/.local/share/plover/strokes.log```
+
+```
+1.62321789416 stroke/word  (58352/42954.8)
+1.0936845242 net stroke/word  (46979/42954.8)
+```
+
 ## translation_count.py
 
 Requires Plover source in the PYTHONPATH environment variable (prefix the command with PYTHONPATH=/path/to/plover).
@@ -39,19 +48,47 @@ Count entry counts in plover logs. Outputs a JSON formatted dictionary of transl
 * *-s SUSPEND, --suspend SUSPEND*
                         stop recording when encountering this translation
 
+**example**:
+
+```PYTHONPATH=~/projects/plover python translation_count.py -r {PLOVER:RESUME} -s {PLOVER:SUSPEND} ~/.local/share/plover/strokes.log > examples/translation_count.json```
+
+```
+{
+  "{,}": {
+    "KW-BG": 2706,
+    "W-BG": 8,
+    "TP-PL/KW-BG": 4,
+    "KW-B": 4,
+    "KWR-BG": 4,
+    "TP-BG": 2,
+    "KWABG": 1,
+    "-RBGS": 1,
+    "-BGS": 1,
+    "KWR-BGS": 1,
+    "-RB": 1
+  },
+  "{.}": {
+    "TP-PL": 2416,
+    "T-PL": 20,
+    "TPH-PL": 17,
+    "-P": 7,
+    "-PL": 6,
+```
+[full output](examples/translation_count.json)
+
 ## time_statistics.py
 
 Requires Plover source in the PYTHONPATH environment variable (prefix the command with PYTHONPATH=/path/to/plover).
 
 **usage**: time_statistics.py [-h] [-r RESUME] [-s SUSPEND]
-                          [-sa SPEED_ACTIVATION SPEED_ACTIVATION SPEED_ACTIVATION]
-                          -w SAMPLE_WINDOW [--raw]
-                          logs [logs ...]
+                        [-sa SPEED_ACTIVATION SPEED_ACTIVATION SPEED_ACTIVATION]
+                        -w SAMPLE_WINDOW [--raw]
+                        logs [logs ...]
 
 Measure statistics over time in Plover logs. Outputs as CSV to standard out.
 
 **positional arguments**:
-* logs                  log file paths
+* *logs*                log file paths
 
 **optional arguments**:
 * *-h, --help*          show this help message and exit
@@ -59,7 +96,7 @@ Measure statistics over time in Plover logs. Outputs as CSV to standard out.
                         start recording after encountering this translation
 * *-s SUSPEND, --suspend SUSPEND*
                         stop recording when encountering this translation
-* * -sa SPEED_ACTIVATION SPEED_ACTIVATION SPEED_ACTIVATION, --speed_activation SPEED_ACTIVATION SPEED_ACTIVATION SPEED_ACTIVATION*
+* *-sa SPEED_ACTIVATION SPEED_ACTIVATION SPEED_ACTIVATION, --speed_activation SPEED_ACTIVATION SPEED_ACTIVATION SPEED_ACTIVATION*
                         speed to start recording on (stroke/second), speed to
                         stop recording on (stroke/second), length of window to
                         check speed in (seconds)
@@ -68,13 +105,20 @@ Measure statistics over time in Plover logs. Outputs as CSV to standard out.
                         statistic
 * *--raw*               raw statistics only, no derived
 
+**example**:
+
+```PYTHONPATH=~/projects/plover python time_statistics.py -r {PLOVER:RESUME} -s {PLOVER:SUSPEND} -sa 1 0.5 4 -w 86400 ~/.local/share/plover/strokes.log > examples/time_statistics.csv```
+
+![examples/time_statistics.csv in LibreOffice Calc](examples/time_statistics.png)
+[full output](examples/time_statistics.csv)
+
 ## stroke_ngrams.py
 
 Requires Plover source in the PYTHONPATH environment variable (prefix the command with PYTHONPATH=/path/to/plover).
 
-**usage**: n_strokes.py [-h] [-r RESUME] [-s SUSPEND] -n RANGE RANGE
-                    [-c MIN_COUNT] [-l LIMIT_OUTPUT]
-                    logs [logs ...]
+**usage**: stroke_ngrams.py [-h] [-r RESUME] [-s SUSPEND] -n RANGE RANGE
+                        [-c MIN_COUNT] [-l LIMIT_OUTPUT]
+                        logs [logs ...]
 
 Count stroke n-grams in plover logs. Outputs a JSON formatted dictionary of stroke sequences and their counts to standard out.
 
@@ -93,6 +137,34 @@ Count stroke n-grams in plover logs. Outputs a JSON formatted dictionary of stro
                         minimum count to output
 * *-l LIMIT_OUTPUT, --limit-output LIMIT_OUTPUT*
                         maximum output entries
+
+**example**:
+
+```PYTHONPATH=~/projects/plover python stroke_ngrams.py -r {PLOVER:RESUME} -s {PLOVER:SUSPEND} -n 2 4 -l 100 ~/.local/share/plover/strokes.log > examples/stroke_ngrams.json```
+
+```
+{
+  "KW-BG/SKP": 244,
+  "TP-PL/EU": 146,
+  "TP-PL/KPA*": 125,
+  "KW-BG/PWUT": 120,
+  "TP-PL/-T": 114,
+  "KW-BG/-T": 104,
+  "EPLT/TP-PL": 86,
+  "TEL/PHE": 84,
+  "KW-BG/EU": 82,
+  "TP-PL/SKP": 82,
+  "S-PBT/KWRUR": 81,
+  "TKOEPBT/TEL": 81,
+  "TPHAUPB/EPLT": 80,
+  "TKOEPBT/TEL/PHE": 80,
+  "TP-PL/T": 76,
+  "-B/S-G": 70,
+  "KW-BG/T": 62,
+  "R-R/R-R": 62,
+  "TP-PL/T-S": 62,
+```
+[full output](examples/stroke_ngrams.json)
 
 ## translation_boundary_errors.py
 
@@ -117,3 +189,29 @@ translation boundary errors to standard out.
 * *-at, --add_translations*
                         add translations to stroke lists
 * *-p, --progress*      output progress percentage on standard error
+
+**example**:
+
+```python translation_boundary_errors.py -ss ALG/REUFPL -at ~/.local/share/plover/main.json```
+
+```
+{
+  "PWRABG/KWREU/SEF/ALG: brachycephalic": {
+    "PWRABG KWREU SEF ALG/: <{^} {^y} {self-^} ALG/": 19,
+    "PWRABG/KWREU SEF ALG/: {brachy^} {self-^} ALG/": 19
+  },
+  "PHET/ALG: metallic": {
+    "PHET ALG/: met ALG/": 19
+  },
+  "APB/ALG: an additional": {
+    "APB ALG/: an ALG/": 19
+  },
+  "TOET/ALG: totaling": {
+    "TOET ALG/: tote ALG/": 19
+  },
+  "ALG/REUFPL: algorithm": {
+    "ALG REUFPL/: additional REUFPL/": 2
+  }
+}
+```
+
