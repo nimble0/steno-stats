@@ -62,9 +62,9 @@ class TranslationCounts:
         # Remove zero count translation entries
         for translation in self.counts.keys():
             self.counts[translation] = {
-                k: v for k, v in self.counts[translation].iteritems() if v > 0 }
+                k: v for k, v in self.counts[translation].items() if v > 0 }
         self.counts = {
-            k: v for k, v in self.counts.iteritems() if len(v) > 0 }
+            k: v for k, v in self.counts.items() if len(v) > 0 }
 
 translation_counts = TranslationCounts()
 

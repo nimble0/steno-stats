@@ -48,7 +48,7 @@ class StrokeListCounts:
 
     def clean(self, min_count = 0):
         self.counts = {
-            k: v for k, v in self.counts.iteritems() if v > min_count }
+            k: v for k, v in self.counts.items() if v > min_count }
 
 stroke_list_counts = StrokeListCounts()
 
