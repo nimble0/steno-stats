@@ -23,7 +23,7 @@ Calculate strokes per word in plover logs. Outputs to standard out.
 
 **example**:
 
-```PYTHONPATH=~/projects/plover python strokes_per_word.py -r {PLOVER:RESUME} -s {PLOVER:SUSPEND} ~/.local/share/plover/strokes.log```
+```PYTHONPATH=~/projects/plover python3 strokes_per_word.py -r {PLOVER:RESUME} -s {PLOVER:SUSPEND} ~/.local/share/plover/strokes.log```
 
 ```
 1.62321789416 stroke/word  (58352/42954.8)
@@ -50,7 +50,7 @@ Count entry counts in plover logs. Outputs a JSON formatted dictionary of transl
 
 **example**:
 
-```PYTHONPATH=~/projects/plover python translation_count.py -r {PLOVER:RESUME} -s {PLOVER:SUSPEND} ~/.local/share/plover/strokes.log > examples/translation_count.json```
+```PYTHONPATH=~/projects/plover python3 translation_count.py -r {PLOVER:RESUME} -s {PLOVER:SUSPEND} ~/.local/share/plover/strokes.log > examples/translation_count.json```
 
 ```
 {
@@ -107,7 +107,7 @@ Measure statistics over time in Plover logs. Outputs as CSV to standard out.
 
 **example**:
 
-```PYTHONPATH=~/projects/plover python time_statistics.py -r {PLOVER:RESUME} -s {PLOVER:SUSPEND} -sa 1 0.5 4 -w 86400 ~/.local/share/plover/strokes.log > examples/time_statistics.csv```
+```PYTHONPATH=~/projects/plover python3 time_statistics.py -r {PLOVER:RESUME} -s {PLOVER:SUSPEND} -sa 1 0.5 4 -w 86400 ~/.local/share/plover/strokes.log > examples/time_statistics.csv```
 
 ![examples/time_statistics.csv in LibreOffice Calc](examples/time_statistics.png)
 [full output](examples/time_statistics.csv)
@@ -140,7 +140,7 @@ Count stroke n-grams in plover logs. Outputs a JSON formatted dictionary of stro
 
 **example**:
 
-```PYTHONPATH=~/projects/plover python stroke_ngrams.py -r {PLOVER:RESUME} -s {PLOVER:SUSPEND} -n 2 4 -l 100 ~/.local/share/plover/strokes.log > examples/stroke_ngrams.json```
+```PYTHONPATH=~/projects/plover python3 stroke_ngrams.py -r {PLOVER:RESUME} -s {PLOVER:SUSPEND} -n 2 4 -l 100 ~/.local/share/plover/strokes.log > examples/stroke_ngrams.json```
 
 ```
 {
@@ -192,7 +192,7 @@ translation boundary errors to standard out.
 
 **example**:
 
-```python translation_boundary_errors.py -ss ALG/REUFPL -at ~/.local/share/plover/main.json```
+```python3 translation_boundary_errors.py -ss ALG/REUFPL -at ~/.local/share/plover/main.json```
 
 ```
 {

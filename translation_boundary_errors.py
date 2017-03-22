@@ -157,8 +157,9 @@ for strokes in check_entries:
 
         suffix_tree = boundary_error_matcher.dictionary_entries_strokes_tree.match(suffix.split("/"))
         while len(suffix_tree.children) == 1:
-            full_strokes += "/" + suffix_tree.children.keys()[0]
-            suffix_tree = suffix_tree.children.values()[0]
+            sole_suffix = list(suffix_tree.children.items())[0]
+            full_strokes += "/" + sole_suffix[0]
+            suffix_tree = sole_suffix[1]
 
         entry_boundary_errors[full_strokes] = 1
         del entry_boundary_errors[error]
@@ -232,4 +233,4 @@ for translation in sorted_boundary_errors.keys():
 print(json.dumps(sorted_boundary_errors,
     ensure_ascii = False,
     indent = 2,
-    separators = (",", ": ")).encode("utf-8"))
+    separators = (",", ": ")))
