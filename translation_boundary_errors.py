@@ -22,9 +22,10 @@ class StrokeTree:
         if not strokes[0] in self.children:
             self.children[strokes[0]] = StrokeTree()
 
-        if len(strokes) > 1:
+        if len(strokes) > 0:
             self.children[strokes[0]].child_count += 1
-            self.children[strokes[0]].add(strokes[1:])
+            if len(strokes) > 1:
+                self.children[strokes[0]].add(strokes[1:])
         else:
             self.is_leaf = True
 
